@@ -1,5 +1,4 @@
 function love.load()
-   love.graphics.setDefaultFilter( "nearest", "nearest", 1)
    
    -- width and height of window
    WIDTH, HEIGHT = love.graphics.getDimensions()
