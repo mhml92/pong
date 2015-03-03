@@ -4,7 +4,7 @@ function love.load()
    WIDTH, HEIGHT = love.graphics.getDimensions()
    
    -- Tennis-ish pong
-   --world = love.physics.newWorld( 0, 1000, false)
+   --world = love.physics.newWorld( 0, 1500, false)
    
    -- Classic pong
    world = love.physics.newWorld( 0, 0, false)
@@ -13,7 +13,7 @@ function love.load()
    MARGIN = 50
 
    -- Player movement speed
-   MOVESPEED = 400
+   MOVESPEED = 800
 
    -- Thickness of the players
    PLAYERWIDTH = 5
@@ -25,8 +25,8 @@ function love.load()
    -- 1 = no energi loss on impict 
    -- 0 100% energi loss, 
    -- > 1 gain energi on impact 
-   RESTITUTION = 1
-   
+   BALLRESTITUTION = 1
+   PLAYERRESTITUTION = 1
    -- Start speed of the ball
    BALLSPEED = 500 
    
@@ -41,6 +41,7 @@ function love.load()
    p1.body = love.physics.newBody(world,MARGIN,HEIGHT/2,"kinematic") 
    p1.shape = love.physics.newRectangleShape(PLAYERWIDTH, p1.size)
    p1.fixture = love.physics.newFixture(p1.body,p1.shape)
+   p1.fixture:setRestitution(PLAYERRESTITUTION)
 
    p2 = {}
    p2.size = PLAYERHEIGHT
@@ -48,13 +49,14 @@ function love.load()
    p2.body = love.physics.newBody(world,WIDTH-MARGIN,HEIGHT/2,"kinematic") 
    p2.shape = love.physics.newRectangleShape(PLAYERWIDTH, p2.size)
    p2.fixture = love.physics.newFixture(p2.body,p2.shape)
+   p1.fixture:setRestitution(PLAYERRESTITUTION)
 
    ball = {}
    ball.r = BALLSIZE
    ball.body = love.physics.newBody(world,WIDTH/2,HEIGHT/2,"dynamic")
    ball.shape = love.physics.newCircleShape(BALLSIZE)
    ball.fixture = love.physics.newFixture(ball.body,ball.shape)
-   ball.fixture:setRestitution(RESTITUTION)
+   ball.fixture:setRestitution(BALLRESTITUTION)
    ball.body:setBullet(true)
    ball.fixture:setFriction(BALLFRICTION)
 
@@ -128,6 +130,9 @@ function love.update(dt)
    -- close the game with the escape key
    if love.keyboard.isDown('escape') then
       love.event.quit()
+   end
+   if love.keyboard.isDown('r') then
+      restart()
    end
 end
 
