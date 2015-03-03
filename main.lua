@@ -53,7 +53,7 @@ function love.load()
    ball = {}
    ball.r = BALLSIZE
    ball.body = love.physics.newBody(world,WIDTH/2,HEIGHT/2,"dynamic")
-   ball.shape = love.physics.newCircleShape(ball.r)
+   ball.shape = love.physics.newCircleShape(BALLSIZE)
    ball.fixture = love.physics.newFixture(ball.body,ball.shape)
    ball.fixture:setRestitution(RESTITUTION)
    ball.body:setBullet(true)
