@@ -2,97 +2,99 @@ function love.load()
    love.graphics.setDefaultFilter( "nearest", "nearest", 1)
    
    WIDTH, HEIGHT = love.graphics.getDimensions()
+   world = love.physics.newWorld( 0, 0, false)
+
    print(HEIGHT,WIDTH)
    MARGIN = 50
    MOVESPEED = 400
-   BALLSPEED = 400
+   --BALLSPEED = 400
    PLAYERWIDTH = 5
+   RESTITUTION = 1
    --create players
    p1 = {}
-   p1.x = MARGIN
-   p1.y = HEIGHT/2
    p1.size = 100
    p1.points = 0
-   
+   p1.body = love.physics.newBody(world,MARGIN,HEIGHT/2,"kinematic") 
+   p1.shape = love.physics.newRectangleShape(PLAYERWIDTH, p1.size)
+   p1.fixture = love.physics.newFixture(p1.body,p1.shape)
+   p1.fixture:setRestitution(RESTITUTION)
+
    p2 = {}
-   p2.x = WIDTH-MARGIN
-   p2.y = HEIGHT/2
    p2.size = 100
    p2.points = 0
+   p2.body = love.physics.newBody(world,WIDTH-MARGIN,HEIGHT/2,"kinematic") 
+   p2.shape = love.physics.newRectangleShape(PLAYERWIDTH, p2.size)
+   p2.fixture = love.physics.newFixture(p2.body,p2.shape)
+   p2.fixture:setRestitution(RESTITUTION)
 
    ball = {}
    ball.r = 10
-   ball.dir = {}
+   ball.body = love.physics.newBody(world,WIDTH/2,HEIGHT/2,"dynamic")
+   ball.shape = love.physics.newCircleShape(ball.r)
+   ball.fixture = love.physics.newFixture(ball.body,ball.shape)
+   ball.fixture:setRestitution(RESTITUTION)
+   ball.body:setBullet(true)
+   ball.fixture:setFriction( 0 )
+
+   
+   side1 = {}
+   side1.body = love.physics.newBody(world,WIDTH/2,0,"static")
+   side1.shape = love.physics.newRectangleShape(WIDTH,1)
+   side1.fixture = love.physics.newFixture(side1.body,side1.shape)
+   side1.fixture:setRestitution(RESTITUTION)
+   
+   side2 = {}
+   side2.body = love.physics.newBody(world,WIDTH/2,HEIGHT,"static")
+   side2.shape = love.physics.newRectangleShape(WIDTH,1)
+   side2.fixture = love.physics.newFixture(side2.body,side2.shape)
+   side2.fixture:setRestitution(RESTITUTION)
+   
+   
    restart()
 end
 
 
 function love.update(dt)
+   world:update(dt)
    --Get keybord input
    if love.keyboard.isDown('w') then
-      p1.y = p1.y - MOVESPEED*dt
-      if p1.y < 0 then
-         p1.y = 0
+      p1.body:setY(p1.body:getY() - MOVESPEED*dt)
+      if p1.body:getY() < 0 then
+         p1.body:setY(0)
       end
    end
    
    if love.keyboard.isDown('s') then
-      p1.y = p1.y + MOVESPEED*dt
-      if p1.y > HEIGHT then
-         p1.y = HEIGHT
+      p1.body:setY(p1.body:getY() + MOVESPEED*dt)
+      if p1.body:getY() > HEIGHT then
+         p1.body:setY(HEIGHT)
       end
    end
 
+   
    if love.keyboard.isDown('up') then
-      p2.y = p2.y - MOVESPEED*dt
-      if p2.y < 0 then
-         p2.y = 0
+      p2.body:setY(p2.body:getY() - MOVESPEED*dt)
+      if p2.body:getY() < 0 then
+         p2.body:setY(0)
       end
    end
    
    if love.keyboard.isDown('down') then
-      p2.y = p2.y + MOVESPEED*dt
-      if p2.y > HEIGHT then
-         p2.y = HEIGHT
-      end 
-   end
-
-   
-
-   ball.x = ball.x + (ball.dir.x*BALLSPEED*dt)
-   ball.y = ball.y + (ball.dir.y*BALLSPEED*dt)
-  
-   if ball.x - ball.r < p1.x + PLAYERWIDTH/2 and ball.x + ball.r > p1.x - PLAYERWIDTH/2 then
-      if ball.y - ball.r > p1.y-p1.size/2 and ball.y + ball.r < p1.y+p1.size/2 then
-         ball.x = p1.x +PLAYERWIDTH/2 + ball.r
-         ball.dir.x = ball.dir.x * -1
-      end
-   end
-   
-   if ball.x + ball.r > p2.x - PLAYERWIDTH/2 and ball.x - ball.r < p2.x + PLAYERWIDTH/2 then
-      if ball.y - ball.r > p2.y-p2.size/2 and ball.y + ball.r < p2.y+p1.size/2 then
-         ball.x = p2.x -(PLAYERWIDTH/2 + ball.r)
-         ball.dir.x = ball.dir.x * -1
+      p2.body:setY(p2.body:getY() + MOVESPEED*dt)
+      if p2.body:getY() > HEIGHT then
+         p2.body:setY(HEIGHT)
       end
    end
 
-   if ball.x > WIDTH  then
+   
+   if ball.body:getX() > WIDTH  then
       p1.points = p1.points + 1
       restart()
    end
-   if ball.x < 0 then 
+   if ball.body:getX() < 0 then 
       p2.points = p2.points + 1
       restart()
    end
-   if ball.y+ball.r > HEIGHT or ball.y-ball.r < 0 then
-      ball.dir.y = ball.dir.y * -1 
-      if ball.y > HEIGHT then
-         ball.y = HEIGHT
-      elseif ball.y < 0 then
-         ball.y = 0
-      end
-   end
-
    if love.keyboard.isDown('escape') then
       love.event.quit()
    end
@@ -100,21 +102,21 @@ end
 
 function love.draw()
    love.window.setTitle(p1.points .. ":" .. p2.points)
-   love.graphics.circle("fill",ball.x,ball.y,ball.r,8)
+   love.graphics.circle("line",ball.body:getX(),ball.body:getY(),ball.r,8)
 
-   love.graphics.rectangle("fill",p1.x-PLAYERWIDTH/2,p1.y-p1.size/2,PLAYERWIDTH,p1.size)
-   love.graphics.rectangle("fill",p2.x-PLAYERWIDTH/2,p2.y-p2.size/2,PLAYERWIDTH,p2.size)
+   love.graphics.rectangle("fill",p1.body:getX()-PLAYERWIDTH/2,p1.body:getY()-p1.size/2,PLAYERWIDTH,p1.size)
+   love.graphics.rectangle("fill",p2.body:getX()-PLAYERWIDTH/2,p2.body:getY()-p2.size/2,PLAYERWIDTH,p2.size)
 
 end
 
 function restart()
-   randomNumber = love.math.random()
-   ball.dir.x = math.cos(randomNumber)
-   ball.dir.y = math.sin(randomNumber)
-   if love.math.random() > 0.5 then
-      ball.dir.x = ball.dir.x * -1
-   end
-   ball.x = WIDTH/2
-   ball.y = HEIGHT/2
+   randomRad = love.math.random()*2*math.pi
+   ball.body:setX(WIDTH/2)
+   ball.body:setY(HEIGHT/2)
+   print(randomRad)
+   print(math.cos(randomRad))
+   print(math.sin(randomRad))
+   print()
+   ball.body:setLinearVelocity(500*math.cos(randomRad),500*math.sin(randomRad))
 end
 
